@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const bookSchema = new mongoose.Schema({
     bookTitle: {
         type: String,
-        required: true,
+        required: true
     },
     ISBN: {
         type: String,
         maxLength: 20,
-        required: true,
+        required: true
     },
     publishYear: {
         type: Date
@@ -40,7 +40,7 @@ const bookSchema = new mongoose.Schema({
         },
         NIC: {
             type: Number,
-            maxLength: 11,
+            maxLength: 11
         },
         checkedOutAt: {                
             type: Date
@@ -59,7 +59,7 @@ const bookSchema = new mongoose.Schema({
                 type: Date
             },
             checkedInAt: {                
-                type: Date,
+                type: Date
             }
         }
     ]

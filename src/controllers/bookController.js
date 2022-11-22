@@ -2,8 +2,8 @@ const express = require('express');
 const {addNewBook, getBookById, deleteBookById, getAllBooks,
     checkOutBook, checkInBook, getPenalty,
     getAvailableBook, getCheckedoutBook} = require('../services/bookService.js');
-const bcrypt = require('bcryptjs');
-const result2 = "Some error occurred";
+
+const {raiseNotFoundException, raiseInternalServerException} = require('../utils/exceptionLogger.js');
 
 const bookInfoController = async (req, res) =>{        //by objId
     try{
@@ -11,33 +11,49 @@ const bookInfoController = async (req, res) =>{        //by objId
         const result = await getBookById(id)
         if(result)        
             res.status(200).send(result);
-        else
+        else{
+            const exc = await raiseNotFoundException();
             res.status(404).send("Not found!");
+        }
     }catch(err){
+        const exc = await raiseInternalServerException(err);
         res.status(500).send(err);
     }
 }
 
 const addBookController = async (req, res) => {
-    var book = { 
-        bookTitle: req.body.bookTitle,
-        ISBN: req.body.ISBN,
-        publishYear: req.body.publishYear,
-        coverPrice: req.body.coverPrice
-    }
+    try{
+        var book = { 
+            bookTitle: req.body.bookTitle,
+            ISBN: req.body.ISBN,
+            publishYear: req.body.publishYear,
+            coverPrice: req.body.coverPrice
+        }
 
-    const result = await addNewBook(book);
-    if(!result){
-        return res.status(404).json({'message':result2});
-    }else
-        return res.status(201).json({'message':result});
+        const result = await addNewBook(book);
+        if(!result){
+            const exc = await raiseNotFoundException();
+            return res.status(404).json({'message':"Not found!"});
+        }else
+            return res.status(201).json({'message':result});
+    }catch(err){
+        const exc = await raiseInternalServerException(err);
+        res.status(500).send(err);
+    }
 }
 
-const getAllBookController = async (req, res) =>{   
-    const book = await getAllBooks();
-    if(!book)
-        return res.status(404).json({'message':result2});
-    return res.status(200).json({'message':book});
+const getAllBookController = async (req, res) =>{
+    try{ 
+        const book = await getAllBooks();
+        if(!book){
+            const exc = await raiseNotFoundException();
+            return res.status(404).json({'message':"Not found!"});
+        }
+        return res.status(200).json({'message':book});
+    }catch(err){
+        const exc = await raiseInternalServerException(err);
+        res.status(500).send(err);
+    }
 }
 
 const bookDeleteController = async (req, res) =>{
@@ -46,42 +62,49 @@ const bookDeleteController = async (req, res) =>{
         const deleted = await deleteBookById(filter);
         if(deleted)        
             res.sendStatus(200);
-        else
+        else{
             res.sendStatus(204);
+        }
     }catch(err){
+        const exc = await raiseInternalServerException(err);
         res.status(500).send(err);
     }
 }
 
 const checkOutBookController = async (req, res) =>{
-    let today = Date.now();
+    try{
+        let today = Date.now();
 
-    //logic for excluding weekends
-    var curr = new Date;
-    var i = 0;
-    var days = 0;
-    while(i<15){
-        if(curr.getDay() != 6 && curr.getDay() != 0){ i++; }
-        days++;
-        curr = new Date(curr.setDate(curr.getDate()+1))
-    }
-    var toBecheckIn = new Date(curr.setDate(curr.getDate()));
-    //logic for excluding weekends
+        //logic for excluding weekends
+        var curr = new Date;
+        var i = 0;
+        var days = 0;
+        while(i<15){
+            if(curr.getDay() != 6 && curr.getDay() != 0){ i++; }
+            days++;
+            curr = new Date(curr.setDate(curr.getDate()+1))
+        }
+        var toBecheckIn = new Date(curr.setDate(curr.getDate()));
+        //logic for excluding weekends
 
-    const objId = req.params.id;
-    var borrowerDetails = {
-        name: req.body.name,
-        cellNo: req.body.cell,
-        NIC: req.body.NIC,
-        checkedOutAt: today,
-        toBecheckedIn: toBecheckIn,
+        const objId = req.params.id;
+        var borrowerDetails = {
+            name: req.body.name,
+            cellNo: req.body.cell,
+            NIC: req.body.NIC,
+            checkedOutAt: today,
+            toBecheckedIn: toBecheckIn,
+        }
+        const result = await checkOutBook(objId, borrowerDetails);       //borrow book
+        if(!result){
+            const exc = await raiseNotFoundException();
+            return res.status(404).json({'message':"Not found!"});
+        }else{
+            return res.status(200).json({'message':result});
+        }
+    }catch(err){
+        res.status(500).send(err);
     }
-    const result = await checkOutBook(objId, borrowerDetails);       //borrow book
-    if(!result){
-        return res.status(404).json({'message':result2});
-    }else
-        return res.status(201).json({'message':result});
-        
 }
 
 const checkInBookController = async (req, res) =>{
@@ -90,9 +113,12 @@ const checkInBookController = async (req, res) =>{
         const result = await checkInBook(id);
         if(result)        
             res.status(200).send(result);
-        else
+        else{
+            const exc = await raiseNotFoundException();
             res.status(404).send("Not found!");
+        }
     }catch(err){
+        const exc = await raiseInternalServerException(err);
         res.status(500).send(err);
     }
 }
@@ -106,9 +132,12 @@ const getPenaltyController = async (req, res) =>{
             if(fine == 1){ fine = 0; }     
             res.status(200).send(fine.toString()+"Rupees");
         }
-        else
+        else{
+            const exc = await raiseNotFoundException();
             res.status(404).send("Not found!");
+        }
     }catch(err){
+        const exc = await raiseInternalServerException(err);
         res.status(500).send(err);
     }
 }
@@ -118,9 +147,12 @@ const getAvailableBookController = async (req, res) =>{
         const result = await getAvailableBook();
         if(result)        
             res.status(200).send(result);
-        else
+        else{
+            const exc = await raiseNotFoundException();
             res.status(404).send("Not found!");
+        }
     }catch(err){
+        const exc = await raiseInternalServerException(err);
         res.status(500).send(err);
     }
 }
@@ -130,9 +162,12 @@ const getAllCheckedoutBookController = async (req, res) =>{
         const result = await getCheckedoutBook();
         if(result)        
             res.status(200).send(result);
-        else
+        else{
+            const exc = await raiseNotFoundException();
             res.status(404).send("Not found!");
+        }
     }catch(err){
+        const exc = await raiseInternalServerException(err);
         res.status(500).send(err);
     }
 }

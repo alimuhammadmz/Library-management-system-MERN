@@ -1,5 +1,7 @@
 const express = require('express');
-const {addNewBook, getBookById, deleteBookById, getAllBooks, checkOutBook, checkInBook, getPenalty} = require('../services/bookService.js');
+const {addNewBook, getBookById, deleteBookById, getAllBooks,
+    checkOutBook, checkInBook, getPenalty,
+    getAvailableBook, getCheckedoutBook} = require('../services/bookService.js');
 const bcrypt = require('bcryptjs');
 const result2 = "Some error occurred";
 
@@ -53,9 +55,9 @@ const bookDeleteController = async (req, res) =>{
 
 const checkOutBookController = async (req, res) =>{
     let today = Date.now();
-    var curr = new Date;
 
     //logic for excluding weekends
+    var curr = new Date;
     var i = 0;
     var days = 0;
     while(i<15){
@@ -100,8 +102,34 @@ const getPenaltyController = async (req, res) =>{
         const id = req.params.id;
         const result = await getPenalty(id);
         var fine = Number((result).toFixed(1));
-        if(result)        
+        if(result){   
+            if(fine == 1){ fine = 0; }     
             res.status(200).send(fine.toString()+"Rupees");
+        }
+        else
+            res.status(404).send("Not found!");
+    }catch(err){
+        res.status(500).send(err);
+    }
+}
+
+const getAvailableBookController = async (req, res) =>{
+    try{
+        const result = await getAvailableBook();
+        if(result)        
+            res.status(200).send(result);
+        else
+            res.status(404).send("Not found!");
+    }catch(err){
+        res.status(500).send(err);
+    }
+}
+
+const getAllCheckedoutBookController = async (req, res) =>{
+    try{
+        const result = await getCheckedoutBook();
+        if(result)        
+            res.status(200).send(result);
         else
             res.status(404).send("Not found!");
     }catch(err){
@@ -117,3 +145,5 @@ module.exports.bookDeleteController = bookDeleteController;
 module.exports.checkOutBookController = checkOutBookController;
 module.exports.checkInBookController = checkInBookController;
 module.exports.getPenaltyController = getPenaltyController;
+module.exports.getAvailableBookController = getAvailableBookController;
+module.exports.getAllCheckedoutBookController = getAllCheckedoutBookController;

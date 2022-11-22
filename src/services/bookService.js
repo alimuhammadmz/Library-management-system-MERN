@@ -61,18 +61,49 @@ const checkInBook = async (id) =>{
 
 const getPenalty = async (id) =>{
     let today = Date.now();
-    var fineToBePaid = 0;
+    var fineToBePaid = 1;
     var daysExceed = 0;
     const bookPenalty =  await Book.findOne({_id : id});
     if(bookPenalty){
+        //logic for counting weekends
+        var toBeCheckedIn = bookPenalty.borrowerDetails.toBecheckedIn;
+        if(today>toBeCheckedIn){
+            var i = 0;
+            var days = 0;
+            var weekends = 0;
+            while(toBeCheckedIn<today){
+                if(toBeCheckedIn.getDay() != 6 && toBeCheckedIn.getDay() != 0){
+                    i++;
+                }else{
+                    weekends++;
+                }
+                days++;
+                toBeCheckedIn = new Date(toBeCheckedIn.setDate(toBeCheckedIn.getDate()+1))
+            }
+        //logic for counting weekends
+        }
         if(bookPenalty.borrowerDetails){
-            daysExceed = today-bookPenalty.borrowerDetails.toBecheckedIn;
-            daysExceed = daysExceed/(1000 * 60 * 60 * 24);
+            daysExceed = Math.abs(today - bookPenalty.borrowerDetails.toBecheckedIn); 
+            daysExceed = Math.ceil(daysExceed / (1000 * 60 * 60 * 24))-weekends; 
             if(daysExceed>0)
                 fineToBePaid = daysExceed*5;            //5 rupees fine per day
         }
     }
     return fineToBePaid;
+}
+
+const getAvailableBook = async () =>{
+    const bookChecked =  await Book.find({check_Status : "checkedIn"});
+    if(bookChecked){
+        return bookChecked;
+    }
+}
+
+const getCheckedoutBook = async () =>{
+    const bookChecked =  await Book.find({check_Status : "checkedOut"});
+    if(bookChecked){
+        return bookChecked;
+    }
 }
 
 module.exports.addNewBook = addNewBook;
@@ -83,3 +114,5 @@ module.exports.deleteBookById = deleteBookById;
 module.exports.checkOutBook = checkOutBook;
 module.exports.checkInBook = checkInBook;
 module.exports.getPenalty = getPenalty;
+module.exports.getAvailableBook = getAvailableBook;     // returns available or already checking books
+module.exports.getCheckedoutBook = getCheckedoutBook;     // returns all borrowed books

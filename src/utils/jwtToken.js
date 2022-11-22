@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const sendToken = async (userPayload) => {
     if(userPayload){
-        const token = jwt.sign(userPayload, 'shhhhh');
+        const token = jwt.sign(userPayload, process.env.JWT_SECRET);
         return token;
     }
 }

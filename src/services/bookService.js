@@ -114,5 +114,5 @@ module.exports.deleteBookById = deleteBookById;
 module.exports.checkOutBook = checkOutBook;
 module.exports.checkInBook = checkInBook;
 module.exports.getPenalty = getPenalty;
-module.exports.getAvailableBook = getAvailableBook;     // returns available or already checking books
+module.exports.getAvailableBook = getAvailableBook;     // returns available or already checkedout books
 module.exports.getCheckedoutBook = getCheckedoutBook;     // returns all borrowed books
